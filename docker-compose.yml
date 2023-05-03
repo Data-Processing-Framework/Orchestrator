@@ -24,6 +24,8 @@ services:
       - WORKER_TIMEOUT=${WORKER_TIMEOUT}
       - N_WORKERS= ${N_WORKERS}
       - IS_INPUT=1
+    depends_on:
+      - backend-core
     volumes:
       - data:/app/src/data:ro
 
@@ -39,6 +41,8 @@ services:
       - IS_INPUT=0
     deploy:
       replicas: ${N_WORKERS}
+    depends_on:
+      - backend-core
     volumes:
       - data:/app/src/data:ro
 
