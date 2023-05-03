@@ -10,21 +10,42 @@ services:
       - N_WORKERS=${N_WORKERS}
       - CONTROLLER_REQUEST_PORT=${CONTROLLER_REQUEST_PORT}
       - CONTROLLER_RESPONSE_PORT=${CONTROLLER_RESPONSE_PORT}
+    volumes:
+      - data:/app/app/data:rw
 
-  backend-worker:
+  backend-worker-input:
     build: https://github.com/Data-Processing-Framework/Backend-Worker.git#master
+    hostname: ${WORKER_INPUT_HOST}
     environment:
-      - DATA_PUBLISHER_PORT=${DATA_PUBLISHER_PORT}
-      - DATA_SUBSCRIBER_PORT=${DATA_SUBSCRIBER_PORT}
+      - DATA_PUBLISHER_ADDRESS=tcp://0.0.0.0:${DATA_PUBLISHER_PORT}
+      - DATA_SUBSCRIBER_ADDRESS=tcp://0.0.0.0:${DATA_SUBSCRIBER_PORT}
       - CONTROLLER_REQUEST_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_REQUEST_PORT}
       - CONTROLLER_RESPONSE_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_RESPONSE_PORT}
       - WORKER_TIMEOUT=${WORKER_TIMEOUT}
       - N_WORKERS= ${N_WORKERS}
+      - IS_INPUT=1
+    volumes:
+      - data:/app/src/data:ro
+
+  backend-worker:
+    build: https://github.com/Data-Processing-Framework/Backend-Worker.git#master
+    environment:
+      - DATA_PUBLISHER_ADDRESS=tcp://${WORKER_INPUT_HOST}:${DATA_PUBLISHER_PORT}
+      - DATA_SUBSCRIBER_ADDRESS=tcp://${WORKER_INPUT_HOST}:${DATA_SUBSCRIBER_PORT}
+      - CONTROLLER_REQUEST_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_REQUEST_PORT}
+      - CONTROLLER_RESPONSE_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_RESPONSE_PORT}
+      - WORKER_TIMEOUT=${WORKER_TIMEOUT}
+      - N_WORKERS= ${N_WORKERS}
+      - IS_INPUT=0
     deploy:
       replicas: ${N_WORKERS}
+    volumes:
+      - data:/app/src/data:ro
 
   frontend:
     ports:
       - "80:3000"
     build: https://github.com/Data-Processing-Framework/Frontend.git#main
-  
+
+volumes:
+  data:
