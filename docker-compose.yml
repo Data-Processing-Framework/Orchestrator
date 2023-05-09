@@ -3,7 +3,7 @@ name: data-processing-framework
 services:
   backend-core:
     hostname: ${CORE_HOST}
-    build: https://github.com/Data-Processing-Framework/Backend-Core.git#DPF-TEST-MODULES
+    build: https://github.com/Data-Processing-Framework/Backend-Core.git#main
     ports:
       - "5000:5000"
     environment:
