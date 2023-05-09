@@ -3,13 +3,14 @@ name: data-processing-framework
 services:
   backend-core:
     hostname: ${CORE_HOST}
-    build: https://github.com/Data-Processing-Framework/Backend-Core.git#main
+    build: https://github.com/Data-Processing-Framework/Backend-Core.git#DPF-TEST-MODULES
     ports:
       - "5000:5000"
     environment:
       - N_WORKERS=${N_WORKERS}
       - CONTROLLER_REQUEST_PORT=${CONTROLLER_REQUEST_PORT}
       - CONTROLLER_RESPONSE_PORT=${CONTROLLER_RESPONSE_PORT}
+      - DEBUG=${CORE_DEBUG}
     volumes:
       - data:/app/app/data:rw
 
@@ -17,13 +18,17 @@ services:
     build: https://github.com/Data-Processing-Framework/Backend-Worker.git#master
     hostname: ${WORKER_INPUT_HOST}
     environment:
-      - DATA_PUBLISHER_ADDRESS=tcp://0.0.0.0:${DATA_PUBLISHER_PORT}
-      - DATA_SUBSCRIBER_ADDRESS=tcp://0.0.0.0:${DATA_SUBSCRIBER_PORT}
+      - DATA_PUBLISHER_ADDRESS=tcp://127.0.0.1:${DATA_PUBLISHER_PORT}
+      - INPUT_SUBSCRIBER_ADDRESS=tcp://0.0.0.0:${INPUT_SUBSCRIBER_PORT}
+      - INTERNAL_SUBSCRIBER_ADDRESS=tcp://127.0.0.1:${INTERNAL_SUBSCRIBER_PORT}
+      - INTERNAL_PUBLISHER_ADDRESS=tcp://127.0.0.1:${INTERNAL_PUBLISHER_PORT}
+
       - CONTROLLER_REQUEST_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_REQUEST_PORT}
       - CONTROLLER_RESPONSE_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_RESPONSE_PORT}
       - WORKER_TIMEOUT=${WORKER_TIMEOUT}
       - N_WORKERS= ${N_WORKERS}
       - IS_INPUT=1
+      - DEBUG=${INPUT_DEBUG}
     depends_on:
       - backend-core
     volumes:
@@ -32,13 +37,17 @@ services:
   backend-worker:
     build: https://github.com/Data-Processing-Framework/Backend-Worker.git#master
     environment:
-      - DATA_PUBLISHER_ADDRESS=tcp://${WORKER_INPUT_HOST}:${DATA_PUBLISHER_PORT}
-      - DATA_SUBSCRIBER_ADDRESS=tcp://${WORKER_INPUT_HOST}:${DATA_SUBSCRIBER_PORT}
+      - DATA_PUBLISHER_ADDRESS=tcp://127.0.0.1:${DATA_PUBLISHER_PORT}
+      - INPUT_SUBSCRIBER_ADDRESS=tcp://${WORKER_INPUT_HOST}:${INPUT_SUBSCRIBER_PORT}
+      - INTERNAL_SUBSCRIBER_ADDRESS=tcp://127.0.0.1:${INTERNAL_SUBSCRIBER_PORT}
+      - INTERNAL_PUBLISHER_ADDRESS=tcp://127.0.0.1:${INTERNAL_PUBLISHER_PORT}
+
       - CONTROLLER_REQUEST_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_REQUEST_PORT}
       - CONTROLLER_RESPONSE_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_RESPONSE_PORT}
       - WORKER_TIMEOUT=${WORKER_TIMEOUT}
       - N_WORKERS= ${N_WORKERS}
       - IS_INPUT=0
+      - DEBUG=${WORKER_DEBUG}
     deploy:
       replicas: ${N_WORKERS}
     depends_on:
@@ -46,10 +55,10 @@ services:
     volumes:
       - data:/app/src/data:ro
 
-  frontend:
-    ports:
-      - "80:3000"
-    build: https://github.com/Data-Processing-Framework/Frontend.git#main
+  # frontend:
+  #   ports:
+  #     - "80:3000"
+  #   build: https://github.com/Data-Processing-Framework/Frontend.git#main
 
 volumes:
   data:
