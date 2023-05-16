@@ -55,30 +55,34 @@ services:
     volumes:
       - data:/app/src/data:ro
 
-  # frontend:
-  #   ports:
-  #     - "80:3000"
-  #   build: https://github.com/Data-Processing-Framework/Frontend.git#main
-
-  log_db:
-    image: mysql:5.7
-    hostname: ${LOGGING_DB_HOST}
-    restart: always
-    command: --init-file /data/application/init.sql
-    environment:
-      - MYSQL_ROOT_USER= root
-      - MYSQL_ROOT_PASSWORD= secret
-      - MYSQL_DATABASE= homestead
-      - MYSQL_USER= root
-      - MYSQL_PASSWORD= secret
+  frontend:
     ports:
-      - '1433:1433'
-    volumes:
-      - sql-server-data:/var/opt/mssql/
-      - sqldata:/var/opt/sqlserver/data
-      - sqllog:/var/opt/sqlserver/log
-      - sqlbackup:/var/opt/sqlserver/backup
-      - ./init.sql:/data/application/init.sql
+      - "80:3000"
+    build: 
+      #build from https://github.com/Data-Processing-Framework/Frontend.git#main
+      context: https://github.com/Data-Processing-Framework/Frontend.git#main
+      args:
+        - CORE_ADDRESS=http://localhost:5000
+
+  # log_db:
+  #   image: mysql:5.7
+  #   hostname: ${LOGGING_DB_HOST}
+  #   restart: always
+  #   command: --init-file /data/application/init.sql
+  #   environment:
+  #     - MYSQL_ROOT_USER= root
+  #     - MYSQL_ROOT_PASSWORD= secret
+  #     - MYSQL_DATABASE= homestead
+  #     - MYSQL_USER= root
+  #     - MYSQL_PASSWORD= secret
+  #   ports:
+  #     - '1433:1433'
+  #   volumes:
+  #     - sql-server-data:/var/opt/mssql/
+  #     - sqldata:/var/opt/sqlserver/data
+  #     - sqllog:/var/opt/sqlserver/log
+  #     - sqlbackup:/var/opt/sqlserver/backup
+  #     - ./init.sql:/data/application/init.sql
 
 volumes:
   data:
