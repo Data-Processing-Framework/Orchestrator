@@ -68,9 +68,11 @@ services:
     image: mysql
     hostname: ${LOGGING_DB_HOST}
     restart: always
-    command: --default-authentication-plugin=mysql_native_password #--init-file /data/application/init.sql
+    command: --default-authentication-plugin=mysql_native_password
     environment:
-      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_ROOT_PASSWORD=${LOGGING_DB_ROOT_PASSWORD}
+      - MYSQL_PASSWORD=${LOGGING_DB_PASSWORD}
+      - MYSQL_USER=${LOGGING_DB_USER}
       - MYSQL_DATABASE=${LOGGING_DB_NAME}
     ports:
       - '3306:3306'
@@ -78,7 +80,7 @@ services:
       - '3306'
     volumes:
       - logs:/var/lib/mysql
-      - ./init.sql:/data/application/init.sql
+      - ./init.sql:/docker-entrypoint-initdb.d/init-script.sql
 
 volumes:
   data:
