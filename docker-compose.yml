@@ -14,56 +14,6 @@ services:
     volumes:
       - data:/app/app/data:rw
 
-  backend-worker-input:
-    build: https://github.com/Data-Processing-Framework/Backend-Worker.git#master
-    hostname: ${WORKER_INPUT_HOST}
-    environment:
-      - DATA_PUBLISHER_ADDRESS=tcp://127.0.0.1:${DATA_PUBLISHER_PORT}
-      - INPUT_SUBSCRIBER_ADDRESS=tcp://0.0.0.0:${INPUT_SUBSCRIBER_PORT}
-      - INTERNAL_SUBSCRIBER_ADDRESS=tcp://127.0.0.1:${INTERNAL_SUBSCRIBER_PORT}
-      - INTERNAL_PUBLISHER_ADDRESS=tcp://127.0.0.1:${INTERNAL_PUBLISHER_PORT}
-
-      - CONTROLLER_REQUEST_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_REQUEST_PORT}
-      - CONTROLLER_RESPONSE_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_RESPONSE_PORT}
-      - WORKER_TIMEOUT=${WORKER_TIMEOUT}
-      - N_WORKERS= ${N_WORKERS}
-      - IS_INPUT=1
-      - DEBUG=${INPUT_DEBUG}
-    depends_on:
-      - backend-core
-    volumes:
-      - data:/app/src/data:ro
-
-  backend-worker:
-    build: https://github.com/Data-Processing-Framework/Backend-Worker.git#master
-    environment:
-      - DATA_PUBLISHER_ADDRESS=tcp://127.0.0.1:${DATA_PUBLISHER_PORT}
-      - INPUT_SUBSCRIBER_ADDRESS=tcp://${WORKER_INPUT_HOST}:${INPUT_SUBSCRIBER_PORT}
-      - INTERNAL_SUBSCRIBER_ADDRESS=tcp://127.0.0.1:${INTERNAL_SUBSCRIBER_PORT}
-      - INTERNAL_PUBLISHER_ADDRESS=tcp://127.0.0.1:${INTERNAL_PUBLISHER_PORT}
-
-      - CONTROLLER_REQUEST_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_REQUEST_PORT}
-      - CONTROLLER_RESPONSE_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_RESPONSE_PORT}
-      - WORKER_TIMEOUT=${WORKER_TIMEOUT}
-      - N_WORKERS= ${N_WORKERS}
-      - IS_INPUT=0
-      - DEBUG=${WORKER_DEBUG}
-    deploy:
-      replicas: ${N_WORKERS}
-    depends_on:
-      - backend-core
-    volumes:
-      - data:/app/src/data:ro
-
-  frontend:
-    ports:
-      - "80:3000"
-    build: 
-      #build from https://github.com/Data-Processing-Framework/Frontend.git#main
-      context: https://github.com/Data-Processing-Framework/Frontend.git#main
-      args:
-        - CORE_ADDRESS=http://localhost:5000
-
   log_db:
     image: mysql
     hostname: ${LOGGING_DB_HOST}
@@ -81,6 +31,68 @@ services:
     volumes:
       - logs:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init-script.sql
+
+  backend-worker-input:
+    build: https://github.com/Data-Processing-Framework/Backend-Worker.git#main
+    hostname: ${WORKER_INPUT_HOST}
+    environment:
+      - DATA_PUBLISHER_ADDRESS=tcp://127.0.0.1:${DATA_PUBLISHER_PORT}
+      - INPUT_SUBSCRIBER_ADDRESS=tcp://0.0.0.0:${INPUT_SUBSCRIBER_PORT}
+      - INTERNAL_SUBSCRIBER_ADDRESS=tcp://127.0.0.1:${INTERNAL_SUBSCRIBER_PORT}
+      - INTERNAL_PUBLISHER_ADDRESS=tcp://127.0.0.1:${INTERNAL_PUBLISHER_PORT}
+
+      - CONTROLLER_REQUEST_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_REQUEST_PORT}
+      - CONTROLLER_RESPONSE_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_RESPONSE_PORT}
+      - WORKER_TIMEOUT=${WORKER_TIMEOUT}
+      - N_WORKERS= ${N_WORKERS}
+      - IS_INPUT=1
+      - DEBUG=${INPUT_DEBUG}
+
+      - LOGGING_DB_ADDRESS=${LOGGING_DB_HOST}
+      - LOGGING_DB_USER=${LOGGING_DB_USER}
+      - LOGGING_DB_PASSWORD=${LOGGING_DB_PASSWORD}
+      - LOGGING_DB_NAME=${LOGGING_DB_NAME}
+    depends_on:
+      - backend-core
+      - log_db
+    volumes:
+      - data:/app/src/data:ro
+
+  backend-worker:
+    build: https://github.com/Data-Processing-Framework/Backend-Worker.git#main
+    environment:
+      - DATA_PUBLISHER_ADDRESS=tcp://127.0.0.1:${DATA_PUBLISHER_PORT}
+      - INPUT_SUBSCRIBER_ADDRESS=tcp://${WORKER_INPUT_HOST}:${INPUT_SUBSCRIBER_PORT}
+      - INTERNAL_SUBSCRIBER_ADDRESS=tcp://127.0.0.1:${INTERNAL_SUBSCRIBER_PORT}
+      - INTERNAL_PUBLISHER_ADDRESS=tcp://127.0.0.1:${INTERNAL_PUBLISHER_PORT}
+
+      - CONTROLLER_REQUEST_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_REQUEST_PORT}
+      - CONTROLLER_RESPONSE_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_RESPONSE_PORT}
+      - WORKER_TIMEOUT=${WORKER_TIMEOUT}
+      - N_WORKERS= ${N_WORKERS}
+      - IS_INPUT=0
+      - DEBUG=${WORKER_DEBUG}
+
+      - LOGGING_DB_ADDRESS=${LOGGING_DB_HOST}
+      - LOGGING_DB_USER=${LOGGING_DB_USER}
+      - LOGGING_DB_PASSWORD=${LOGGING_DB_PASSWORD}
+      - LOGGING_DB_NAME=${LOGGING_DB_NAME}
+    deploy:
+      replicas: ${N_WORKERS}
+    depends_on:
+      - backend-core
+      - log_db
+    volumes:
+      - data:/app/src/data:ro
+
+  frontend:
+    ports:
+      - "80:3000"
+    build: 
+      #build from https://github.com/Data-Processing-Framework/Frontend.git#main
+      context: https://github.com/Data-Processing-Framework/Frontend.git#main
+      args:
+        - CORE_ADDRESS=http://localhost:5000
 
 volumes:
   data:
