@@ -3,7 +3,7 @@ name: data-processing-framework
 services:
   backend-core:
     hostname: ${CORE_HOST}
-    build: https://github.com/Data-Processing-Framework/Backend-Core.git#DPF-91-Fix-Status-bug
+    build: https://github.com/Data-Processing-Framework/Backend-Core.git#main
     ports:
       - "5000:5000"
     environment:
@@ -33,7 +33,7 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init-script.sql
 
   backend-worker-input:
-    build: https://github.com/Data-Processing-Framework/Backend-Worker.git#DPF-92-Change-Status
+    build: https://github.com/Data-Processing-Framework/Backend-Worker.git#master
     hostname: ${WORKER_INPUT_HOST}
     environment:
       - DATA_PUBLISHER_ADDRESS=tcp://127.0.0.1:${DATA_PUBLISHER_PORT}
@@ -56,7 +56,7 @@ services:
       - data:/app/src/data:ro
 
   backend-worker:
-    build: https://github.com/Data-Processing-Framework/Backend-Worker.git#DPF-92-Change-Status
+    build: https://github.com/Data-Processing-Framework/Backend-Worker.git#master
     environment:
       - DATA_PUBLISHER_ADDRESS=tcp://127.0.0.1:${DATA_PUBLISHER_PORT}
       - INPUT_SUBSCRIBER_ADDRESS=tcp://${WORKER_INPUT_HOST}:${INPUT_SUBSCRIBER_PORT}
