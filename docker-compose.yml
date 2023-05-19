@@ -3,13 +3,13 @@ name: data-processing-framework
 services:
   backend-core:
     hostname: ${CORE_HOST}
-    build: https://github.com/Data-Processing-Framework/Backend-Core.git#main
+    build: https://github.com/Data-Processing-Framework/Backend-Core.git#DPF-91-Fix-Status-bug
     ports:
       - "5000:5000"
     environment:
       - N_WORKERS=${N_WORKERS}
       - CONTROLLER_REQUEST_PORT=${CONTROLLER_REQUEST_PORT}
-      - CONTROLLER_RESPONSE_PORT=${CONTROLLER_RESPONSE_PORT}
+      - CONTROLLER_STATUS_PORT=${CONTROLLER_STATUS_PORT}
       - DEBUG=${CORE_DEBUG}
     volumes:
       - data:/app/app/data:rw
@@ -33,7 +33,7 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init-script.sql
 
   backend-worker-input:
-    build: https://github.com/Data-Processing-Framework/Backend-Worker.git#main
+    build: https://github.com/Data-Processing-Framework/Backend-Worker.git#DPF-92-Change-Status
     hostname: ${WORKER_INPUT_HOST}
     environment:
       - DATA_PUBLISHER_ADDRESS=tcp://127.0.0.1:${DATA_PUBLISHER_PORT}
@@ -42,7 +42,7 @@ services:
       - INTERNAL_PUBLISHER_ADDRESS=tcp://127.0.0.1:${INTERNAL_PUBLISHER_PORT}
 
       - CONTROLLER_REQUEST_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_REQUEST_PORT}
-      - CONTROLLER_RESPONSE_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_RESPONSE_PORT}
+      - CONTROLLER_STATUS_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_STATUS_PORT}
       - WORKER_TIMEOUT=${WORKER_TIMEOUT}
       - N_WORKERS= ${N_WORKERS}
       - IS_INPUT=1
@@ -52,14 +52,11 @@ services:
       - LOGGING_DB_USER=${LOGGING_DB_USER}
       - LOGGING_DB_PASSWORD=${LOGGING_DB_PASSWORD}
       - LOGGING_DB_NAME=${LOGGING_DB_NAME}
-    depends_on:
-      - backend-core
-      - log_db
     volumes:
       - data:/app/src/data:ro
 
   backend-worker:
-    build: https://github.com/Data-Processing-Framework/Backend-Worker.git#main
+    build: https://github.com/Data-Processing-Framework/Backend-Worker.git#DPF-92-Change-Status
     environment:
       - DATA_PUBLISHER_ADDRESS=tcp://127.0.0.1:${DATA_PUBLISHER_PORT}
       - INPUT_SUBSCRIBER_ADDRESS=tcp://${WORKER_INPUT_HOST}:${INPUT_SUBSCRIBER_PORT}
@@ -67,7 +64,7 @@ services:
       - INTERNAL_PUBLISHER_ADDRESS=tcp://127.0.0.1:${INTERNAL_PUBLISHER_PORT}
 
       - CONTROLLER_REQUEST_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_REQUEST_PORT}
-      - CONTROLLER_RESPONSE_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_RESPONSE_PORT}
+      - CONTROLLER_STATUS_ADDRESS=tcp://${CORE_HOST}:${CONTROLLER_STATUS_PORT}
       - WORKER_TIMEOUT=${WORKER_TIMEOUT}
       - N_WORKERS= ${N_WORKERS}
       - IS_INPUT=0
@@ -79,9 +76,6 @@ services:
       - LOGGING_DB_NAME=${LOGGING_DB_NAME}
     deploy:
       replicas: ${N_WORKERS}
-    depends_on:
-      - backend-core
-      - log_db
     volumes:
       - data:/app/src/data:ro
 
